@@ -126,10 +126,21 @@ const GasUsageGraph: React.FC<GasUsageGraphProps> = ({
 
   console.log("[GasUsageGraph] Attempting to render ComposedChart.");
   return (
-    <div className="p-4 sm:p-6 bg-white/10 backdrop-blur-md rounded-lg shadow-xl h-[400px] sm:h-[500px]">
-      <ResponsiveContainer width="100%" height="100%">
-        <ComposedChart data={processedData}>
-          <CartesianGrid strokeDasharray="3 3" strokeOpacity={0.2} />
+    <div className="p-4 sm:p-6 bg-white/10 backdrop-blur-md rounded-lg shadow-xl h-[400px] sm:h-[500px] border-2 border-red-500 flex flex-col">
+      <div className="text-white mb-2 flex-shrink-0">
+        <p className="font-bold">GRAPH DEBUG INFO:</p>
+        <p>Processed Data Points: {processedData.length}</p>
+        {processedData.length > 0 && (
+          <details className="text-xs mt-1">
+            <summary className="cursor-pointer">Click to view processed data</summary>
+            <pre className="whitespace-pre-wrap max-h-32 overflow-auto bg-black/20 p-1 rounded mt-1">{JSON.stringify(processedData, null, 2)}</pre>
+          </details>
+        )}
+      </div>
+      <div className="flex-grow relative"> {/* This div will take remaining space and provide context for ResponsiveContainer */}
+        <ResponsiveContainer width="100%" height="100%">
+          <ComposedChart data={processedData}>
+            <CartesianGrid strokeDasharray="3 3" strokeOpacity={0.2} />
           <XAxis 
             dataKey="date" 
             tickFormatter={(dateStr) => {
