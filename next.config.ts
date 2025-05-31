@@ -2,7 +2,7 @@ import type { NextConfig } from "next";
     
 const nextConfig: NextConfig = {
   devIndicators: false,
-  transpilePackages: ['@privy-io/react-auth', '@blockscout/app-sdk', 'styled-components'], // Keep styled-components here for now
+  transpilePackages: ['@privy-io/react-auth', '@blockscout/app-sdk'], // Removed styled-components from here
   // Webpack alias for styled-components removed for now
   async headers() {
     return [
