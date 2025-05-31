@@ -4,23 +4,28 @@ export async function fetchTransactionHistory(
   walletAddress: string
 ): Promise<Transaction[]> {
   try {
+    // Call your local API endpoint
     const response = await fetch(
-      `https://flare-explorer.flare.network/api?module=account&action=txlist&address=${walletAddress}&sort=desc&page=1&offset=100`
+      `/api/transactions?address=${walletAddress}`
     );
 
-    const data = await response.json();
-
-    if (data.status === "1" && Array.isArray(data.result)) {
-      return data.result.map((tx: any) => ({
-        hash: tx.hash,
-        timestamp: tx.timeStamp,
-        gasUsed: tx.gasUsed,
-      }));
+    if (!response.ok) {
+      // Handle non-OK responses from your local API
+      const errorData = await response.json().catch(() => ({ error: "Failed to parse error response" }));
+      console.error(`Error fetching transaction history from local API: ${response.status}`, errorData);
+      // You might want to throw an error here or return an empty array based on how react-query handles it
+      throw new Error(errorData.error || `Failed to fetch transaction history: ${response.status}`);
     }
 
-    return [];
+    const data: Transaction[] = await response.json();
+    return data; // The local API now returns the already mapped transactions
+
   } catch (error) {
-    console.error("Error fetching transaction history:", error);
-    return [];
+    console.error("Error in fetchTransactionHistory calling local API:", error);
+    // Ensure react-query can catch this error
+    if (error instanceof Error) {
+        throw error;
+    }
+    throw new Error("An unknown error occurred while fetching transaction history.");
   }
 }
