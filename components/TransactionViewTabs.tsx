@@ -162,7 +162,10 @@ const TransactionViewTabs: React.FC<TransactionViewTabsProps> = ({
            </div>
         )}
         {!isLoading && activeTab === "graph" && transactions && (
-          <GasUsageGraph transactions={transactions} startDate={startDate} endDate={endDate} />
+          <>
+            {console.log(`[TransactionViewTabs] Rendering GasUsageGraph. Transactions count: ${transactions.length}, Start: ${startDate}, End: ${endDate}`)}
+            <GasUsageGraph transactions={transactions} startDate={startDate} endDate={endDate} />
+          </>
         )}
         {activeTab === "table" && (
           <TransactionTable transactions={transactions} isLoading={isLoading} error={error} />

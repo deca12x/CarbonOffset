@@ -32,6 +32,8 @@ const GasUsageGraph: React.FC<GasUsageGraphProps> = ({
   startDate,
   endDate,
 }) => {
+  console.log("[GasUsageGraph] Props received:", { numTransactions: transactions?.length, startDate, endDate });
+
   const filteredTransactions = transactions
     .map(tx => ({ ...tx, date: new Date(parseInt(tx.timestamp) * 1000) }))
     .filter(tx => {
@@ -41,7 +43,10 @@ const GasUsageGraph: React.FC<GasUsageGraphProps> = ({
     })
     .sort((a, b) => a.date.getTime() - b.date.getTime());
 
+  console.log(`[GasUsageGraph] Number of filtered transactions: ${filteredTransactions.length}`);
+
   if (filteredTransactions.length === 0) {
+    console.log("[GasUsageGraph] Rendering: 'No transaction data available for the selected period.'");
     return <div className="text-center p-6 text-gray-300 bg-white/10 backdrop-blur-md rounded-lg shadow-xl">No transaction data available for the selected period.</div>;
   }
 
@@ -84,6 +89,11 @@ const GasUsageGraph: React.FC<GasUsageGraphProps> = ({
     cumulativeGas += entry.gasUsed;
     entry.cumulativeGasUsed = cumulativeGas;
   });
+
+  console.log(`[GasUsageGraph] Number of processed data points for chart: ${processedData.length}`);
+  if (processedData.length > 0) {
+    console.log("[GasUsageGraph] First processed data point:", processedData[0]);
+  }
   
   const formatYAxisGas = (tickItem: number) => {
     if (tickItem >= 1_000_000_000) return `${(tickItem / 1_000_000_000).toFixed(1)}B`;
@@ -92,6 +102,7 @@ const GasUsageGraph: React.FC<GasUsageGraphProps> = ({
     return tickItem.toString();
   };
 
+  console.log("[GasUsageGraph] Attempting to render ComposedChart.");
   return (
     <div className="p-4 sm:p-6 bg-white/10 backdrop-blur-md rounded-lg shadow-xl h-[400px] sm:h-[500px]">
       <ResponsiveContainer width="100%" height="100%">
