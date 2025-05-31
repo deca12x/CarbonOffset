@@ -2,6 +2,7 @@ import type { NextConfig } from "next";
     
 const nextConfig: NextConfig = {
   devIndicators: false,
+  transpilePackages: ['styled-components', '@privy-io/react-auth'],
   async headers() {
     return [
       {
