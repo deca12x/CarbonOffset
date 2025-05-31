@@ -2,8 +2,10 @@ import type { NextConfig } from "next";
     
 const nextConfig: NextConfig = {
   devIndicators: false,
-  transpilePackages: ['@privy-io/react-auth', '@blockscout/app-sdk'], // Removed styled-components from here
-  // Webpack alias for styled-components removed for now
+  transpilePackages: ['@privy-io/react-auth', '@blockscout/app-sdk'],
+  compiler: {
+    styledComponents: true, // Enable Next.js compiler support for styled-components
+  },
   async headers() {
     return [
       {
