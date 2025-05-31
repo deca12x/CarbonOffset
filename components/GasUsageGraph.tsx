@@ -126,74 +126,9 @@ const GasUsageGraph: React.FC<GasUsageGraphProps> = ({
 
   console.log("[GasUsageGraph] Attempting to render ComposedChart.");
   return (
-    <div> {/* Temporarily remove className to further isolate the parsing issue */}
-      <div className="text-white mb-2 flex-shrink-0">
-        <p className="font-bold">GRAPH DEBUG INFO:</p>
-        <p>Processed Data Points: {processedData.length}</p>
-        {processedData.length > 0 && (
-          <details className="text-xs mt-1">
-            <summary className="cursor-pointer">Click to view processed data</summary>
-            <pre className="whitespace-pre-wrap max-h-32 overflow-auto bg-black/20 p-1 rounded mt-1">{JSON.stringify(processedData, null, 2)}</pre>
-          </details>
-        )}
-      </div>
-      <div className="flex-grow relative"> {/* This div will take remaining space and provide context for ResponsiveContainer */}
-        <ResponsiveContainer width="100%" height="100%">
-          <ComposedChart data={processedData}>
-            <CartesianGrid strokeDasharray="3 3" strokeOpacity={0.2} />
-          <XAxis 
-            dataKey="date" 
-            tickFormatter={(dateStr) => {
-              if (interval === 'hourly') {
-                // dateStr will be like "2025-05-30 14:00"
-                // We need to parse it carefully. parseISO might work if it's a full ISO string.
-                // Or, more simply, extract hour.
-                try {
-                  return format(parseISO(dateStr.replace(' ', 'T')), "HH:mm"); // Show hour and minute
-                } catch (e) {
-                  return dateStr.substring(11,16); // Fallback: "HH:00"
-                }
-              }
-              return format(parseISO(dateStr), "MMM d"); // Default for daily, weekly, monthly
-            }}
-            stroke="#9ca3af"
-            tick={{ fontSize: 12 }}
-            // Optionally, add a label for the XAxis to indicate the date if showing hourly ticks
-            // label={interval === 'hourly' && startDate ? { value: format(startDate, "MMM d, yyyy"), position: 'insideBottom', dy: 10, fill: "#9ca3af" } : undefined}
-          />
-          <YAxis
-            yAxisId="left"
-            orientation="left"
-            stroke="#8884d8"
-            tickFormatter={formatYAxisGas}
-            label={{ value: "Gas Used", angle: -90, position: "insideLeft", fill: "#8884d8", dy: 40, dx: -5, fontSize: 14 }}
-            tick={{ fontSize: 12 }}
-          />
-          <YAxis
-            yAxisId="right"
-            orientation="right"
-            stroke="#82ca9d"
-            tickFormatter={formatYAxisGas}
-            label={{ value: "Cumulative Gas", angle: 90, position: "insideRight", fill: "#82ca9d", dy: -70, dx: 5, fontSize: 14 }}
-            tick={{ fontSize: 12 }}
-          />
-          <Tooltip
-            contentStyle={{ backgroundColor: "rgba(31, 41, 55, 0.8)", borderColor: "#4b5563", borderRadius: "0.5rem" }}
-            labelStyle={{ color: "#e5e7eb", fontWeight: "bold" }}
-            itemStyle={{ color: "#d1d5db" }}
-            formatter={(value: number, name: string) => {
-              const formattedValue = typeof value === 'number' ? value.toLocaleString() : value;
-              if (name === "gasUsed") return [formattedValue, "Gas Used"];
-              if (name === "cumulativeGasUsed") return [formattedValue, "Cumulative Gas"];
-              if (name === "transactionCount") return [formattedValue, "Transactions"];
-              return [formattedValue, name];
-            }}
-          />
-          <Legend wrapperStyle={{ paddingTop: "20px" }} />
-          <Bar yAxisId="left" dataKey="gasUsed" name="Gas Used / Period" fill="#8884d8" barSize={20} />
-          <Line yAxisId="right" type="monotone" dataKey="cumulativeGasUsed" name="Cumulative Gas Used" stroke="#82ca9d" strokeWidth={2} dot={{ r: 3 }} />
-        </ComposedChart>
-      </ResponsiveContainer>
+    <div className="p-4 sm:p-6 bg-white/10 backdrop-blur-md rounded-lg shadow-xl h-[400px] sm:h-[500px]">
+      <p className="text-white">Test: GasUsageGraph component is rendering.</p>
+      <p className="text-white">If you see this, the parsing issue is likely within the more complex chart structure that was previously here, or the debug info display.</p>
     </div>
   );
 };
