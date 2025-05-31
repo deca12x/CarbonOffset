@@ -4,13 +4,12 @@
 import { usePrivy } from "@privy-io/react-auth";
 import { useRouter } from "next/navigation";
 import { Loader2 } from "lucide-react";
-import { clans } from "@/lib/data";
 import { useQuery } from "@tanstack/react-query";
 import { fetchTransactionHistory } from "@/lib/TransactionHistory";
-import { formatDistanceToNow } from "date-fns";
 import ConnectButton from "@/components/ConnectButton";
 import { useRef, useEffect, useState } from "react";
 import { AnimatedBackground } from "@/components/AnimatedBackground";
+import TransactionViewTabs from "@/components/TransactionViewTabs"; // New Import
 import { formatUnits } from "viem";
 import { useContractRead } from "wagmi";
 import { createPublicClient, http } from "viem";
@@ -113,63 +112,15 @@ export default function Home() {
         <ConnectButton />
       </div>
 
-      {/* Transaction History */}
+      {/* Transaction History and Graph Section */}
       {authenticated && (
-        <div className="relative z-10 container mx-auto px-4 py-20 text-white">
-          <h2 className="text-xl font-bold mb-4">Recent Transactions</h2>
-          {txLoading ? (
-            <div className="flex justify-center items-center p-8">
-              <Loader2 className="h-8 w-8 animate-spin text-primary" />
-            </div>
-          ) : txError ? (
-            <div className="text-red-500 p-4">
-              Error loading transactions. Please try again later.
-            </div>
-          ) : (
-            <div className="overflow-x-auto">
-              <table className="min-w-full bg-white rounded-lg overflow-hidden">
-                <thead className="bg-gray-50">
-                  <tr>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Transaction Hash
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Date
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Gas Used
-                    </th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-gray-200">
-                  {transactions?.map((tx) => (
-                    <tr key={tx.hash}>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-blue-600">
-                        <a
-                          href={`https://blockscout.com/tx/${tx.hash}`}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                        >
-                          {tx.hash.slice(0, 6)}...{tx.hash.slice(-4)}
-                        </a>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                        {formatDistanceToNow(
-                          new Date(parseInt(tx.timestamp) * 1000),
-                          {
-                            addSuffix: true,
-                          }
-                        )}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                        {tx.gasUsed}
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          )}
+        <div className="relative z-10 container mx-auto px-4 py-10 sm:py-20 text-white">
+          <h2 className="text-3xl sm:text-4xl font-bold mb-6 sm:mb-8 text-center sm:text-left">Wallet Activity</h2>
+          <TransactionViewTabs 
+            transactions={transactions}
+            isLoading={txLoading}
+            error={txError}
+          />
         </div>
       )}
 
