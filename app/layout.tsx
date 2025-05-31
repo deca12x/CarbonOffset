@@ -1,4 +1,5 @@
 import { Providers } from "../components/providers";
+import StyledComponentsRegistry from '../lib/StyledComponentsRegistry';
 
 export default function RootLayout({
   children,
@@ -8,7 +9,9 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body>
-        <Providers>{children}</Providers>
+        <StyledComponentsRegistry>
+          <Providers>{children}</Providers>
+        </StyledComponentsRegistry>
       </body>
     </html>
   );
