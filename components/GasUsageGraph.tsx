@@ -70,13 +70,19 @@ const GasUsageGraph: React.FC<GasUsageGraphProps> = ({
     let entry = acc.find(e => e.date === dateKey);
     const gas = parseInt(tx.gasUsed);
 
+    if (isNaN(gas)) {
+      console.warn(`[GasUsageGraph] Parsed gas is NaN for transaction:`, tx);
+      // If gas is NaN, we should probably not add it or treat it as 0.
+      // For now, we'll let it proceed to see how Recharts handles it, but this is a flag.
+    }
+
     if (entry) {
-      entry.gasUsed += gas;
+      entry.gasUsed += isNaN(gas) ? 0 : gas; // Add 0 if gas is NaN
       entry.transactionCount += 1;
     } else {
       acc.push({
         date: dateKey,
-        gasUsed: gas,
+        gasUsed: isNaN(gas) ? 0 : gas, // Use 0 if gas is NaN
         cumulativeGasUsed: 0, // Will be calculated later
         transactionCount: 1,
       });
