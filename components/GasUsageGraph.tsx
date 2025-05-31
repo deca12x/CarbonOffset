@@ -60,12 +60,25 @@ const GasUsageGraph: React.FC<GasUsageGraphProps> = ({
     return 'monthly'; // More than 2 years
   };
   
-  const interval = getAggregationInterval(); // For now, we'll stick to daily aggregation for simplicity
+  const interval = getAggregationInterval();
+  console.log("[GasUsageGraph] Aggregation interval:", interval);
 
   const processedData = filteredTransactions.reduce<ProcessedData[]>((acc, tx) => {
     const txDate = tx.date;
-    // For simplicity, we'll group by day. More complex grouping (hourly, weekly, monthly) can be added.
-    const dateKey = format(txDate, "yyyy-MM-dd");
+    let dateKey: string;
+
+    switch (interval) {
+      case 'hourly':
+        dateKey = format(txDate, "yyyy-MM-dd HH:00"); // Group by hour
+        break;
+      // Add 'weekly' and 'monthly' cases here if needed in the future
+      // For 'weekly', you might use format(startOfWeek(txDate), "yyyy-MM-dd")
+      // For 'monthly', you might use format(startOfMonth(txDate), "yyyy-MM")
+      case 'daily':
+      default:
+        dateKey = format(txDate, "yyyy-MM-dd"); // Group by day
+        break;
+    }
     
     let entry = acc.find(e => e.date === dateKey);
     const gas = parseInt(tx.gasUsed);
@@ -90,13 +103,16 @@ const GasUsageGraph: React.FC<GasUsageGraphProps> = ({
     return acc;
   }, []);
 
+  // Sort data by date key to ensure cumulative sum is correct, especially for hourly/daily strings
+  processedData.sort((a, b) => a.date.localeCompare(b.date));
+
   let cumulativeGas = 0;
   processedData.forEach(entry => {
     cumulativeGas += entry.gasUsed;
     entry.cumulativeGasUsed = cumulativeGas;
   });
 
-  console.log(`[GasUsageGraph] Number of processed data points for chart: ${processedData.length}`);
+  console.log(`[GasUsageGraph] Number of processed data points for chart after ${interval} aggregation: ${processedData.length}`);
   if (processedData.length > 0) {
     console.log("[GasUsageGraph] First processed data point:", processedData[0]);
   }
@@ -116,9 +132,23 @@ const GasUsageGraph: React.FC<GasUsageGraphProps> = ({
           <CartesianGrid strokeDasharray="3 3" strokeOpacity={0.2} />
           <XAxis 
             dataKey="date" 
-            tickFormatter={(dateStr) => format(parseISO(dateStr), "MMM d")}
+            tickFormatter={(dateStr) => {
+              if (interval === 'hourly') {
+                // dateStr will be like "2025-05-30 14:00"
+                // We need to parse it carefully. parseISO might work if it's a full ISO string.
+                // Or, more simply, extract hour.
+                try {
+                  return format(parseISO(dateStr.replace(' ', 'T')), "HH:mm"); // Show hour and minute
+                } catch (e) {
+                  return dateStr.substring(11,16); // Fallback: "HH:00"
+                }
+              }
+              return format(parseISO(dateStr), "MMM d"); // Default for daily, weekly, monthly
+            }}
             stroke="#9ca3af"
             tick={{ fontSize: 12 }}
+            // Optionally, add a label for the XAxis to indicate the date if showing hourly ticks
+            // label={interval === 'hourly' && startDate ? { value: format(startDate, "MMM d, yyyy"), position: 'insideBottom', dy: 10, fill: "#9ca3af" } : undefined}
           />
           <YAxis
             yAxisId="left"
