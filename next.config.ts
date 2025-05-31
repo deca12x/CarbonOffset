@@ -2,19 +2,8 @@ import type { NextConfig } from "next";
     
 const nextConfig: NextConfig = {
   devIndicators: false,
-  transpilePackages: ['styled-components', '@privy-io/react-auth', '@blockscout/app-sdk'],
-  webpack: (config, { isServer }) => {
-    // Add an alias for styled-components to ensure the correct version is resolved.
-    // This points to the main CJS entry point for styled-components v5.
-    // Adjust the path if your node_modules structure or styled-components version differs significantly,
-    // but for v5, 'styled-components/dist/styled-components.cjs.js' is a common path for the CJS build.
-    // Or simply 'styled-components' if the override in package.json is expected to work.
-    config.resolve.alias = {
-      ...config.resolve.alias,
-      'styled-components': require.resolve('styled-components'),
-    };
-    return config;
-  },
+  transpilePackages: ['@privy-io/react-auth', '@blockscout/app-sdk', 'styled-components'], // Keep styled-components here for now
+  // Webpack alias for styled-components removed for now
   async headers() {
     return [
       {
