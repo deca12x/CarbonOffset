@@ -126,7 +126,7 @@ const GasUsageGraph: React.FC<GasUsageGraphProps> = ({
 
   console.log("[GasUsageGraph] Attempting to render ComposedChart.");
   return (
-    <div className="p-4 sm:p-6 bg-white/10 backdrop-blur-md rounded-lg shadow-xl h-[400px] sm:h-[500px]">
+    <div> {/* Temporarily remove className to further isolate the parsing issue */}
       <div className="text-white mb-2 flex-shrink-0">
         <p className="font-bold">GRAPH DEBUG INFO:</p>
         <p>Processed Data Points: {processedData.length}</p>
