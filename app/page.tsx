@@ -42,6 +42,7 @@ export default function Home() {
   // const walletAddress = user?.wallet?.address || null;
   const walletAddress = "0xe3c17d8E80Ea53a75fC42AFbE685c845394ADB64";
   const backgroundRef = useRef<HTMLDivElement>(null);
+  const isDevelopment = process.env.NODE_ENV === 'development';
 
   const {
     data: transactions,
@@ -101,9 +102,16 @@ export default function Home() {
 
   return (
     <main className="relative min-h-screen">
-      <div ref={backgroundRef} className="fixed inset-0 z-0 w-screen h-screen">
-        <AnimatedBackground />
-      </div>
+      {/* Conditionally render AnimatedBackground: only in production */}
+      {!isDevelopment && (
+        <div ref={backgroundRef} className="fixed inset-0 z-0 w-screen h-screen">
+          <AnimatedBackground />
+        </div>
+      )}
+      {/* Optional: Simple placeholder background for development */}
+      {isDevelopment && (
+         <div ref={backgroundRef} className="fixed inset-0 z-0 w-screen h-screen bg-black" />
+      )}
 
       {/* Content sections */}
       <div className="relative z-10 container mx-auto px-4 py-20 text-white">
