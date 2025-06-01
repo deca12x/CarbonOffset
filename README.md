@@ -7,7 +7,7 @@ LayerGreen is a user-friendly platform that empowers individuals to understand a
 
 **Our Vision:** To make carbon offsetting accessible, transparent, and verifiable through the power of blockchain technology, enabling users to take meaningful climate action.
 
-**Webapp is live at:** [carbon-offset-alpha.vercel.app](https://carbon-offset-alpha.vercel.app/)
+**Webapp is live at:** [layergreen.xyz](https://www.layergreen.xyz/)
 
 ## Key Features
 
