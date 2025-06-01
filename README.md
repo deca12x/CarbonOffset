@@ -4,8 +4,7 @@ CarbonOffset is a user-friendly platform that empowers individuals to understand
 
 **Our Vision:** To make carbon offsetting accessible, transparent, and verifiable through the power of blockchain technology, enabling users to take meaningful climate action.
 
-**Live Demo:** [Link to your deployed application]
-**Video Pitch:** [Link to your video pitch]
+**Live Demo:** [[carbon-offset-alpha.vercel.app](https://carbon-offset-alpha.vercel.app/)]
 
 ## Key Features
 
