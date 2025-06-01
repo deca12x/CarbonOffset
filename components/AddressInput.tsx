@@ -14,11 +14,11 @@ interface AddressInputProps {
   placeholder?: string;
 }
 
-export default function AddressInput({ 
-  value, 
-  onChange, 
+export default function AddressInput({
+  value,
+  onChange,
   label = "Destination Address",
-  placeholder = "Enter Polygon address (0x...)"
+  placeholder = "Enter Polygon address (0x...)",
 }: AddressInputProps) {
   const { user } = usePrivy();
   const [isEditing, setIsEditing] = useState(false);
@@ -28,7 +28,7 @@ export default function AddressInput({
   // Set default to user's address when they log in
   useEffect(() => {
     if (user?.wallet?.address && !value) {
-      onChange(user.wallet.address);
+      onChange(user?.wallet?.address);
     }
   }, [user?.wallet?.address, value, onChange]);
 
@@ -62,7 +62,7 @@ export default function AddressInput({
 
   const openInExplorer = () => {
     if (value) {
-      window.open(`https://polygon.blockscout.com/address/${value}`, '_blank');
+      window.open(`https://polygon.blockscout.com/address/${value}`, "_blank");
     }
   };
 
@@ -95,12 +95,15 @@ export default function AddressInput({
                 }}
                 placeholder={placeholder}
                 className={`font-mono text-sm ${
-                  !isValid ? 'border-destructive focus-visible:ring-destructive' : ''
+                  !isValid
+                    ? "border-destructive focus-visible:ring-destructive"
+                    : ""
                 }`}
               />
               {!isValid && (
                 <p className="text-destructive text-xs">
-                  Please enter a valid Ethereum address (0x followed by 40 hex characters)
+                  Please enter a valid Ethereum address (0x followed by 40 hex
+                  characters)
                 </p>
               )}
             </div>
@@ -152,14 +155,15 @@ export default function AddressInput({
                 </Button>
               </div>
             )}
-            {user?.wallet?.address && value !== user.wallet.address && (
+            {user?.wallet?.address && value !== user?.wallet?.address && (
               <Button
                 variant="ghost"
                 size="sm"
-                onClick={() => onChange(user.wallet.address)}
+                onClick={() => onChange(user?.wallet?.address || "")}
                 className="text-muted-foreground hover:text-foreground"
               >
-                Use my address ({user.wallet.address.slice(0, 6)}...{user.wallet.address.slice(-4)})
+                Use my address ({user?.wallet?.address?.slice(0, 6)}...
+                {user?.wallet?.address?.slice(-4)})
               </Button>
             )}
           </div>
@@ -167,4 +171,4 @@ export default function AddressInput({
       </CardContent>
     </Card>
   );
-} 
+}
