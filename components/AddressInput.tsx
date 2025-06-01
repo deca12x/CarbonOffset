@@ -61,7 +61,9 @@ export default function AddressInput({
   };
 
   const openInExplorer = () => {
-    window.open(`https://polygonscan.com/address/${value}`, '_blank');
+    if (value) {
+      window.open(`https://polygon.blockscout.com/address/${value}`, '_blank');
+    }
   };
 
   return (

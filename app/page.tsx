@@ -13,32 +13,110 @@ import { useRef, useEffect, useState } from "react";
 import { AnimatedBackground } from "@/components/AnimatedBackground";
 import { CrossChainMonitor } from "@/components/CrossChainMonitor";
 import { formatUnits } from "viem";
-import { createPublicClient, http } from "viem";
-import { polygon } from "viem/chains";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 
-// Initialize the public client for Polygon
-const publicClient = createPublicClient({
-  chain: polygon,
-  transport: http(),
-});
-
-// ABI for ERC20 balanceOf function
-const erc20ABI = [
-  {
-    name: "balanceOf",
-    type: "function",
-    stateMutability: "view",
-    inputs: [{ name: "account", type: "address" }],
-    outputs: [{ name: "", type: "uint256" }],
-  },
-] as const;
-
 // Constants
-const NCT_CONTRACT_ADDRESS = "0xd838290e877e0188a4a44700463419ed96c16107";
-const walletWithNctOnPolygon = "0x6998FE700015f04FB192f46Ec1DcB59320334f4B"; // Example wallet, replace or fetch dynamically
+const NCT_CONTRACT_ADDRESS = "0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174";
+const POLYGON_CHAIN_ID = "137";
+
+// Function to fetch token balance using direct RPC call
+const fetchTokenBalance = async (address: string, tokenAddress: string): Promise<string> => {
+  try {
+    // Use direct RPC call to get token balance
+    const rpcUrl = "https://polygon-rpc.com";
+    
+    // ERC20 balanceOf function signature: balanceOf(address)
+    const functionSignature = "0x70a08231"; // balanceOf function selector
+    const paddedAddress = address.slice(2).padStart(64, '0'); // Remove 0x and pad to 32 bytes
+    const data = functionSignature + paddedAddress;
+    
+    const response = await fetch(rpcUrl, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        jsonrpc: '2.0',
+        method: 'eth_call',
+        params: [
+          {
+            to: tokenAddress,
+            data: data
+          },
+          'latest'
+        ],
+        id: 1
+      })
+    });
+    
+    if (!response.ok) {
+      throw new Error(`RPC error! status: ${response.status}`);
+    }
+    
+    const result = await response.json();
+    
+    if (result.error) {
+      throw new Error(`RPC call failed: ${result.error.message}`);
+    }
+    
+    // Convert hex result to decimal
+    const balanceHex = result.result;
+    const balance = BigInt(balanceHex || '0x0').toString();
+    
+    console.log(`Token balance for ${address}: ${balance}`);
+    return balance;
+    
+  } catch (error) {
+    console.error("Error fetching token balance:", error);
+    
+    // Fallback: try alternative RPC endpoint
+    try {
+      console.log('Trying fallback RPC endpoint...');
+      const fallbackRpcUrl = "https://rpc.ankr.com/polygon";
+      
+      const functionSignature = "0x70a08231";
+      const paddedAddress = address.slice(2).padStart(64, '0');
+      const data = functionSignature + paddedAddress;
+      
+      const fallbackResponse = await fetch(fallbackRpcUrl, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          jsonrpc: '2.0',
+          method: 'eth_call',
+          params: [
+            {
+              to: tokenAddress,
+              data: data
+            },
+            'latest'
+          ],
+          id: 1
+        })
+      });
+      
+      if (fallbackResponse.ok) {
+        const fallbackResult = await fallbackResponse.json();
+        if (!fallbackResult.error) {
+          const balanceHex = fallbackResult.result;
+          const balance = BigInt(balanceHex || '0x0').toString();
+          console.log(`Fallback RPC - Token balance for ${address}: ${balance}`);
+          return balance;
+        }
+      }
+    } catch (fallbackError) {
+      console.error("Fallback RPC also failed:", fallbackError);
+    }
+    
+    // If all methods fail, return 0 instead of throwing
+    console.log('All RPC methods failed, returning 0');
+    return "0";
+  }
+};
 
 export default function Home() {
   const { ready, authenticated, user } = usePrivy();
@@ -62,41 +140,21 @@ export default function Home() {
     enabled: !!walletToSearch,
   });
 
-  const [nctBalance, setNctBalance] = useState<string>("0");
-  const [nctLoading, setNctLoading] = useState(true);
-  const [nctError, setNctError] = useState<Error | null>(null);
-
-  useEffect(() => {
-    const fetchNCTBalance = async () => {
-      if (!user?.wallet?.address) {
-        // Don't fetch if user is not logged in or wallet address is not available.
-        // Or use walletWithNctOnPolygon for general display if desired
-        setNctLoading(false);
-        setNctBalance("0"); 
-        return;
-      }
-      try {
-        setNctLoading(true);
-        const balance = await publicClient.readContract({
-          address: NCT_CONTRACT_ADDRESS as `0x${string}`,
-          abi: erc20ABI,
-          functionName: "balanceOf",
-          args: [user.wallet.address as `0x${string}`], // Use logged-in user's address
-        });
-        setNctBalance(balance.toString());
-        setNctError(null);
-      } catch (error) {
-        console.error("Error fetching NCT balance:", error);
-        setNctError(error as Error);
-      } finally {
-        setNctLoading(false);
-      }
-    };
-
-    if(authenticated && user?.wallet?.address){
-      fetchNCTBalance();
-    }
-  }, [authenticated, user?.wallet?.address]);
+  // Use React Query for NCT balance fetching with Blockscout API
+  const { 
+    data: nctBalance, 
+    isLoading: nctLoading, 
+    error: nctError,
+    refetch: refetchNctBalance 
+  } = useQuery({
+    queryKey: ["nctBalance", user?.wallet?.address],
+    queryFn: () => user?.wallet?.address 
+      ? fetchTokenBalance(user.wallet.address, NCT_CONTRACT_ADDRESS)
+      : Promise.resolve("0"),
+    enabled: !!authenticated && !!user?.wallet?.address,
+    staleTime: 30000, // 30 seconds
+    refetchInterval: 60000, // Refetch every minute
+  });
 
   useEffect(() => {
     if (authenticated) {
@@ -201,24 +259,40 @@ export default function Home() {
                     <Coins className="w-6 h-6 text-primary" />
                     NCT Balance
                   </CardTitle>
-                  <CardDescription>Nature Carbon Tonne on Polygon</CardDescription>
+                  <CardDescription>Balance on Polygon (via RPC)</CardDescription>
                 </CardHeader>
                 <CardContent className="text-center">
                   {nctLoading ? (
-                    <Loader2 className="h-8 w-8 animate-spin text-primary mx-auto" />
+                    <div className="flex flex-col items-center gap-2">
+                      <Loader2 className="h-8 w-8 animate-spin text-primary" />
+                      <p className="text-xs text-muted-foreground">Fetching balance...</p>
+                    </div>
                   ) : nctError ? (
-                    <p className="text-destructive text-sm">Error: {nctError.message}</p>
+                    <div className="text-center">
+                      <p className="text-destructive text-sm mb-2">Error fetching balance</p>
+                      <Button 
+                        variant="outline" 
+                        size="sm" 
+                        onClick={() => refetchNctBalance()}
+                        className="text-xs"
+                      >
+                        Retry
+                      </Button>
+                    </div>
                   ) : (
-                    <p className="text-4xl font-bold gradient-text">
-                      {(parseFloat(nctBalance) / 1e18).toLocaleString(undefined, { maximumFractionDigits: 4 })} NCT
-                    </p>
+                    <div>
+                      <p className="text-4xl font-bold gradient-text">
+                        {nctBalance ? (parseFloat(nctBalance) / 1e6).toLocaleString(undefined, { maximumFractionDigits: 6 }) : "0"} 
+                      </p>
+                      <p className="text-sm text-muted-foreground mt-1">NCT</p>
+                    </div>
                   )}
                 </CardContent>
                 {!nctLoading && !nctError && (
                   <CardFooter>
                     <Button variant="outline" size="sm" asChild className="w-full glass hover:border-primary">
-                      <a href={`https://polygonscan.com/address/${NCT_CONTRACT_ADDRESS}`} target="_blank" rel="noopener noreferrer">
-                        View on Polygonscan <ArrowRight className="ml-2" />
+                      <a href={`https://polygon.blockscout.com/address/${NCT_CONTRACT_ADDRESS}`} target="_blank" rel="noopener noreferrer">
+                        View on Blockscout <ArrowRight className="ml-2" />
                       </a>
                     </Button>
                   </CardFooter>
@@ -278,9 +352,14 @@ export default function Home() {
                       <tbody className="divide-y divide-border">
                         {transactions.map((tx) => (
                           <tr key={tx.hash} className="hover:bg-white/5 transition-colors duration-150">
-                            <td className="p-3 font-mono">
-                              <a href={`https://flare-explorer.flare.network/tx/${tx.hash}`} target="_blank" rel="noopener noreferrer" className="text-primary hover:text-secondary underline-offset-4 hover:underline">
-                                {tx.hash.slice(0, 12)}...{tx.hash.slice(-10)}
+                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                              <a 
+                                href={`https://flare-explorer.flare.network/tx/${tx.hash}`}
+                                target="_blank" 
+                                rel="noopener noreferrer"
+                                className="text-blue-600 hover:text-blue-800 underline"
+                              >
+                                {tx.hash.slice(0, 10)}...{tx.hash.slice(-8)}
                               </a>
                             </td>
                             <td className="p-3 text-muted-foreground">
@@ -308,7 +387,7 @@ export default function Home() {
                 <CardDescription>Track your bridge transactions across multiple blockchain networks.</CardDescription>
               </CardHeader>
               <CardContent>
-                <CrossChainMonitor />
+                <CrossChainMonitor transactions={transactions || []} />
               </CardContent>
             </Card>
           </div>

@@ -9,7 +9,7 @@
     "lint": "next lint"
   },
   "dependencies": {
-    "@blockscout/app-sdk": "^0.1.0",
+    "@blockscout/app-sdk": "^0.1.1",
     "@privy-io/react-auth": "^2.6.4",
     "@privy-io/wagmi": "^1.0.3",
     "@radix-ui/react-dialog": "^1.1.14",

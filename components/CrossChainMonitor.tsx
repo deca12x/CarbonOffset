@@ -74,6 +74,19 @@ const layerZeroOftAbi = [
 
 const USDT_DECIMALS = 6;
 
+// Transaction interface for props
+interface Transaction {
+  hash: string;
+  gasUsed?: string;
+  gasPrice?: string;
+  value?: string;
+  timestamp?: string;
+}
+
+interface CrossChainMonitorProps {
+  transactions?: Transaction[];
+}
+
 // Simple custom toast notification component
 const Toast: React.FC<{ message: string; type: 'success' | 'error' | 'info'; onClose: () => void }> = ({ message, type, onClose }) => {
   useEffect(() => {
@@ -93,7 +106,7 @@ const Toast: React.FC<{ message: string; type: 'success' | 'error' | 'info'; onC
   );
 };
 
-export const CrossChainMonitor: React.FC = () => {
+export const CrossChainMonitor: React.FC<CrossChainMonitorProps> = ({ transactions = [] }) => {
   const { address } = useAccount();
   const { openPopup } = useTransactionPopup();
 
@@ -104,6 +117,46 @@ export const CrossChainMonitor: React.FC = () => {
   const [currentStage, setCurrentStage] = useState<'idle' | 'estimating' | 'transferring' | 'bridging'>('idle');
   const [layerZeroGuid, setLayerZeroGuid] = useState<string | null>(null);
   const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' | 'info' } | null>(null);
+
+  // Calculate total gas cost from transaction history
+  const calculateTotalGasCost = (): { totalUsd: number; transactionCount: number } => {
+    if (!transactions || transactions.length === 0) {
+      return { totalUsd: 0, transactionCount: 0 };
+    }
+
+    let totalGasUsed = 0;
+    let validTransactions = 0;
+
+    transactions.forEach(tx => {
+      if (tx.gasUsed) {
+        const gasUsed = parseInt(tx.gasUsed);
+        if (!isNaN(gasUsed)) {
+          totalGasUsed += gasUsed;
+          validTransactions++;
+        }
+      }
+    });
+
+    if (validTransactions === 0) {
+      return { totalUsd: 0, transactionCount: 0 };
+    }
+
+    // Estimate gas price for Flare (25 gwei average)
+    const avgGasPriceGwei = 25;
+    const gasPriceWei = avgGasPriceGwei * 1e9;
+    
+    // Calculate total cost in FLR
+    const totalCostWei = totalGasUsed * gasPriceWei;
+    const totalCostFLR = totalCostWei / 1e18;
+    
+    // Convert FLR to USD (estimate $0.02 per FLR)
+    const flrToUsd = 0.02;
+    const totalUsd = totalCostFLR * flrToUsd;
+    
+    return { totalUsd, transactionCount: validTransactions };
+  };
+
+  const { totalUsd: suggestedAmount, transactionCount } = calculateTotalGasCost();
 
   // Check user's USDT balance
   const { data: userUsdtBalance, refetch: refetchUsdtBalance } = useReadContract({
@@ -333,6 +386,18 @@ export const CrossChainMonitor: React.FC = () => {
         )}
 
         <div className="space-y-4">
+          {/* Suggested Amount Display */}
+          {suggestedAmount > 0 && transactionCount > 0 && (
+            <div className="p-3 bg-blue-500/10 border border-blue-500/20 rounded-lg">
+              <p className="text-sm text-blue-300">
+                💡 Suggested amount to bridge to cover gas costs: <span className="text-blue-200 font-semibold">${suggestedAmount.toFixed(2)} USDT</span>
+              </p>
+              <p className="text-xs text-blue-400 mt-1">
+                Based on {transactionCount} recent transaction{transactionCount > 1 ? 's' : ''} from your history
+              </p>
+            </div>
+          )}
+          
           <div>
             <label htmlFor="amount" className="block text-sm font-medium text-gray-300">Amount USDT to Bridge</label>
             <input 
