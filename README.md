@@ -1,4 +1,4 @@
-# CarbonOffset: Seamless Cross-Chain Carbon Offsetting
+# Green Layer: Seamless Cross-Chain Carbon Offsetting
 
 CarbonOffset is a user-friendly platform that empowers individuals to understand and neutralize their blockchain carbon footprint. By analyzing transaction history on networks like Flare, we provide a clear visualization of carbon emissions and offer a streamlined, one-click solution to offset these emissions by acquiring tokenized carbon credits (NCT) on Polygon.
 
