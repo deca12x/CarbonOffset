@@ -7,7 +7,7 @@ import { NuqsAdapter } from "nuqs/adapters/next/app";
 import { http } from "wagmi";
 import { defineChain } from "viem";
 import {
-  NotificationProvider,
+  // NotificationProvider, // Temporarily removed due to 'show' attribute error
   TransactionPopupProvider,
 } from "@blockscout/app-sdk";
 
@@ -55,7 +55,7 @@ const queryClient = new QueryClient();
 export function Providers({ children }: { children: React.ReactNode }) {
   return (
     <QueryClientProvider client={queryClient}>
-      <NotificationProvider>
+      {/* <NotificationProvider> Temporarily removed due to 'show' attribute error */}
         <TransactionPopupProvider>
           <PrivyProvider
             appId={process.env.NEXT_PUBLIC_PRIVY_APP_ID as string}
@@ -108,7 +108,7 @@ export function Providers({ children }: { children: React.ReactNode }) {
             </WagmiProvider>
           </PrivyProvider>
         </TransactionPopupProvider>
-      </NotificationProvider>
+      {/* </NotificationProvider> */}
     </QueryClientProvider>
   );
 }

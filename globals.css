@@ -1,0 +1,30 @@
+@import "tailwindcss";
+
+:root {
+  --background: #0a0a0a;
+  --foreground: #ffffff;
+  --card: rgba(10, 10, 10, 0.7);
+  --card-foreground: #ffffff;
+  --popover: rgba(0, 0, 0, 0.95);
+  --popover-foreground: #ffffff;
+  --primary: #10b981;
+  --primary-foreground: #ffffff;
+  --secondary: #3b82f6;
+  --secondary-foreground: #ffffff;
+  --muted: rgba(255, 255, 255, 0.15);
+  --muted-foreground: rgba(255, 255, 255, 0.65);
+  --accent: rgba(16, 185, 129, 0.25);
+  --accent-foreground: #ffffff;
+  --destructive: #ef4444;
+  --destructive-foreground: #ffffff;
+  --border: rgba(255, 255, 255, 0.15);
+  --input: rgba(255, 255, 255, 0.08);
+  --ring: #10b981;
+  --radius: 0.75rem;
+  --card-rgb: 10, 10, 10;
+}
+
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&display=swap');
+
+// ... existing code ... 
