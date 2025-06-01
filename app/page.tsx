@@ -12,7 +12,6 @@ import ConnectButton from "@/components/ConnectButton";
 import { useRef, useEffect, useState } from "react";
 import { AnimatedBackground } from "@/components/AnimatedBackground";
 import { formatUnits } from "viem";
-import { useContractRead } from "wagmi";
 import { createPublicClient, http } from "viem";
 import { polygon } from "viem/chains";
 
@@ -35,13 +34,86 @@ const erc20ABI = [
 
 // Constants
 const NCT_CONTRACT_ADDRESS = "0xd838290e877e0188a4a44700463419ed96c16107";
-const walletAddress2 = "0x6998FE700015f04FB192f46Ec1DcB59320334f4B";
+const walletWithNctOnPolygon = "0x6998FE700015f04FB192f46Ec1DcB59320334f4B";
+
+const nctContractABI = [
+  {
+    inputs: [
+      { internalType: "address", name: "_logic", type: "address" },
+      { internalType: "address", name: "", type: "address" },
+      { internalType: "bytes", name: "_data", type: "bytes" },
+    ],
+    stateMutability: "payable",
+    type: "constructor",
+  },
+  {
+    anonymous: false,
+    inputs: [
+      {
+        indexed: false,
+        internalType: "address",
+        name: "previousAdmin",
+        type: "address",
+      },
+      {
+        indexed: false,
+        internalType: "address",
+        name: "newAdmin",
+        type: "address",
+      },
+    ],
+    name: "AdminChanged",
+    type: "event",
+  },
+  {
+    anonymous: false,
+    inputs: [
+      {
+        indexed: true,
+        internalType: "address",
+        name: "beacon",
+        type: "address",
+      },
+    ],
+    name: "BeaconUpgraded",
+    type: "event",
+  },
+  {
+    anonymous: false,
+    inputs: [
+      {
+        indexed: true,
+        internalType: "address",
+        name: "implementation",
+        type: "address",
+      },
+    ],
+    name: "Upgraded",
+    type: "event",
+  },
+  { stateMutability: "payable", type: "fallback" },
+  { stateMutability: "payable", type: "receive" },
+] as const;
+
+async function fetchUSDCtoCHARRatio() {
+  try {
+    const ratio = await publicClient.readContract({
+      address: NCT_CONTRACT_ADDRESS as `0x${string}`,
+      abi: nctContractABI,
+      functionName: "getUSDCtoCHARRatio",
+    });
+    return ratio;
+  } catch (error) {
+    console.error("Error fetching USDC-to-CHAR ratio:", error);
+    return null;
+  }
+}
 
 export default function Home() {
   const { ready, authenticated, logout, user } = usePrivy();
   const router = useRouter();
-  // const walletAddress = user?.wallet?.address || null;
-  const walletAddress = "0xe3c17d8E80Ea53a75fC42AFbE685c845394ADB64";
+  // const walletOfUser = user?.wallet?.address || null;
+  const walletSearched = "0xe3c17d8E80Ea53a75fC42AFbE685c845394ADB64";
   const backgroundRef = useRef<HTMLDivElement>(null);
 
   const {
@@ -49,12 +121,12 @@ export default function Home() {
     isLoading: txLoading,
     error: txError,
   } = useQuery({
-    queryKey: ["transactions", walletAddress],
+    queryKey: ["transactions", walletSearched],
     queryFn: () =>
-      walletAddress
-        ? fetchTransactionHistory(walletAddress)
+      walletSearched
+        ? fetchTransactionHistory(walletSearched)
         : Promise.resolve([]),
-    enabled: !!walletAddress,
+    enabled: !!walletSearched,
   });
 
   const [nctBalance, setNctBalance] = useState<string>("0");
@@ -69,7 +141,7 @@ export default function Home() {
           address: NCT_CONTRACT_ADDRESS as `0x${string}`,
           abi: erc20ABI,
           functionName: "balanceOf",
-          args: [walletAddress2 as `0x${string}`],
+          args: [walletWithNctOnPolygon as `0x${string}`],
         });
         setNctBalance(balance.toString());
       } catch (error) {
@@ -181,7 +253,7 @@ export default function Home() {
             <div className="flex flex-col gap-2">
               <div className="text-gray-500 text-sm">Wallet Address</div>
               <div className="text-gray-700 font-mono break-all">
-                {walletAddress2}
+                {walletWithNctOnPolygon}
               </div>
               <div className="text-gray-500 text-sm mt-4">NCT Balance</div>
               {nctLoading ? (
@@ -200,7 +272,7 @@ export default function Home() {
               )}
               <div className="mt-4">
                 <a
-                  href={`https://polygonscan.blockscout.com/token/${NCT_CONTRACT_ADDRESS}?a=${walletAddress2}`}
+                  href={`https://polygonscan.blockscout.com/token/${NCT_CONTRACT_ADDRESS}?a=${walletWithNctOnPolygon}`}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="text-blue-600 hover:text-blue-800 text-sm"
